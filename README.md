@@ -10,8 +10,8 @@ Docker Image: https://hub.docker.com/r/adguardhome/adguardhome
 | Option | Default Value |
 | ---- | ---- |
 | role_adguardhome_image | docker.io/adguard/adguardhome |
-| role_adguardhome_container | adguardhome |
-| role_adguardhome_volume | adguardhome |
+| role_adguardhome_container | adguard |
+| role_adguardhome_volume | adguard |
 | role_adguardhome_network | app-network |
 
 ## License
