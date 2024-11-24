@@ -1,0 +1,65 @@
+---
+- name: set vars
+  set_fact:
+    docker_image: '{{ role_adguardhome_image }}'
+    docker_container: '{{ role_adguardhome_container }}'
+    docker_volume_config: '{{ role_adguardhome_volume }}_config'
+    docker_volume_data: '{{ role_adguardhome_volume }}_data'
+    docker_network: '{{ role_adguardhome_network }}'
+
+- name: Ensure image is pulled
+  community.docker.docker_image:
+    name: '{{ docker_image }}'
+    source: pull
+    force_source: yes
+  register: pulled
+
+- name: Remove container
+  community.docker.docker_container:
+    name: '{{ docker_container }}'
+    state: absent
+  when: pulled.changed
+
+- name: Get infos on container
+  community.docker.docker_container_info:
+    name: '{{ docker_container }}'
+  register: result
+
+- name: Create config volume
+  community.docker.docker_volume:
+    name: "{{ docker_volume_config }}"
+
+- name: Create data volume
+  community.docker.docker_volume:
+    name: "{{ docker_volume_data }}"
+
+- name: Create network
+  community.docker.docker_network:
+    name: '{{ docker_network }}'
+    driver_options:
+      com.docker.network.bridge.name: 'br-{{ docker_network }}'
+
+- name: Create adguardhome container
+  community.docker.docker_container:
+    image: '{{ docker_image }}'
+    volumes:
+     - '{{ docker_volume_config }}:/opt/adguardhome/conf:Z'
+     - '{{ docker_volume_data }}:/opt/adguardhome/work:Z'
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '853:853/tcp'
+      - '784:784/udp'
+      - '853:853/udp'
+      - '8853:8853/udp'
+      - '5443:5443/tcp'
+      - '5443:5443/udp'
+    name: '{{ docker_container }}'
+    networks:
+     - name: '{{ docker_network }}'
+    restart_policy: unless-stopped
+    state: started
+  when:
+    pulled.changed
+    or
+    result.exists == false
