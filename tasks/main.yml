@@ -54,6 +54,7 @@
       - '8853:8853/udp'
       - '5443:5443/tcp'
       - '5443:5443/udp'
+      - '3000:3000/tcp'
     name: '{{ docker_container }}'
     networks:
      - name: '{{ docker_network }}'
